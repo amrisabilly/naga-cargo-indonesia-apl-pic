@@ -16,6 +16,7 @@ dependencies:
   geolocator: ^14.0.2
   provider: ^6.1.5+1
   mobile_scanner: ^4.0.0
+  image_picker: ^1.2.1
 
 dev_dependencies:
   flutter_test:

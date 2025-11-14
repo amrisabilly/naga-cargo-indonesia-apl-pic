@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:go_router/go_router.dart';
 
 class BerandaPicScreen extends StatefulWidget {
   const BerandaPicScreen({super.key});
@@ -85,7 +86,7 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
         children: [
           // Header dengan gradient - lebih kompak
           Container(
-            height: screenHeight * 0.15, // Dikurangi dari 0.3 ke 0.25
+            height: screenHeight * 0.17, // Dikurangi dari 0.3 ke 0.25
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -104,50 +105,47 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header info - lebih kompak
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const ProfilePicScreen(),
-                              ),
-                            );
-                          },
-                          child: const CircleAvatar(
-                            radius: 22, // Dikurangi dari 25
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate using go_router
+                        context.go('/profile_pic');
+                      },
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 22,
                             backgroundColor: Colors.white,
                             child: Icon(
                               Icons.person,
                               color: Color(0xFF4A90E2),
-                              size: 26, // Dikurangi dari 30
+                              size: 26,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Selamat Datang,',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13, // Dikurangi dari 14
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Selamat Datang,',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                'PIC Naga Cargo',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 17, // Dikurangi dari 18
-                                  fontWeight: FontWeight.bold,
+                                Text(
+                                  'PIC Naga Cargo',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -556,24 +554,3 @@ class _ScanBastScreenState extends State<ScanBastScreen> {
 }
 
 // Profile PIC Screen placeholder
-class ProfilePicScreen extends StatelessWidget {
-  const ProfilePicScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile PIC'),
-        backgroundColor: const Color(0xFF4A90E2),
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text(
-          'Profile PIC Screen\n(Akan dibuat serupa dengan Profile Kurir)',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
-        ),
-      ),
-    );
-  }
-}
