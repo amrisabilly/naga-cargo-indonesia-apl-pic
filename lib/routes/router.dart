@@ -5,9 +5,13 @@ import '../controller/loginController.dart';
 import '../auth/login.dart';
 import '../presentations/beranda-pic.dart';
 import '../presentations/profile-pic.dart';
-// ... import screen lain ...
+
+// Create a key untuk GoRouter agar bisa di-refresh
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   redirect: (context, state) {
     print('[DEBUG] === ROUTER REDIRECT CHECK ===');
     print('[DEBUG] Path: ${state.matchedLocation}');
@@ -21,7 +25,7 @@ final router = GoRouter(
       final isLoggedIn = userData != null;
 
       print('[DEBUG] isLoggedIn: $isLoggedIn');
-      print('[DEBUG] userData exists: ${userData != null}');
+      print('[DEBUG] userData: $userData');
 
       // Jika user sudah login dan mencoba ke halaman login
       if (isLoggedIn && state.matchedLocation == '/login') {
@@ -36,11 +40,10 @@ final router = GoRouter(
       }
 
       print('[DEBUG] ✓ Navigasi normal');
-      return null; // Lanjutkan navigasi normal
+      return null;
     } catch (e) {
       print('[DEBUG] ✗ ERROR di router redirect: $e');
-      print('[DEBUG] Stack trace: ${StackTrace.current}');
-      return '/login'; // Default ke login jika error
+      return '/login';
     }
   },
   routes: [
@@ -68,7 +71,6 @@ final router = GoRouter(
         return const ProfilePicScreen();
       },
     ),
-    // ... routes lain ...
   ],
   initialLocation: '/login',
 );

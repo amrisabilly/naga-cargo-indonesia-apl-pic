@@ -79,26 +79,31 @@ class LoginController extends ChangeNotifier {
 
   /// Fungsi login utama (dengan SharedPreferences)
   Future<void> login(BuildContext context) async {
+    print('[DEBUG] === LOGIN DIMULAI ===');
     _errorMessage = '';
 
-    // Validasi input
     if (usernameController.text.trim().isEmpty) {
       _errorMessage = 'Username tidak boleh kosong';
+      print('[DEBUG] ✗ Username kosong');
       notifyListeners();
       return;
     }
 
     if (passwordController.text.trim().isEmpty) {
       _errorMessage = 'Password tidak boleh kosong';
+      print('[DEBUG] ✗ Password kosong');
       notifyListeners();
       return;
     }
 
     _isLoading = true;
     notifyListeners();
+    print('[DEBUG] Loading: true');
 
     try {
-      // 1. Validasi kredensial melalui API
+      // 1. Validasi kredensial
+      print('[DEBUG] Step 1: Calling AuthService.loginPIC()');
+      
       final loginResult = await _authService.loginPIC(
         username: usernameController.text.trim(),
         password: passwordController.text.trim(),
@@ -109,72 +114,92 @@ class LoginController extends ChangeNotifier {
       if (!loginResult['success']) {
         _errorMessage = loginResult['message'];
         _isLoading = false;
+        print('[DEBUG] ✗ Login failed: $_errorMessage');
         notifyListeners();
         return;
       }
 
-      // Simpan data user SEBELUM cek lokasi
+      print('[DEBUG] ✓ Kredensial valid');
+
       _userData = loginResult['user'];
       _namaDaerah = loginResult['nama_daerah'];
       
-      print('[DEBUG] User data tersimpan: $_userData');
+      print('[DEBUG] User data: $_userData');
       print('[DEBUG] Nama daerah: $_namaDaerah');
-      
-      // NOTIFY LISTENERS SETELAH DATA TERSIMPAN
       notifyListeners();
 
-      // 2. Dapatkan lokasi saat ini
+      // 2. Dapatkan lokasi
+      print('[DEBUG] Step 2: Getting current location');
+      
       final locationResult = await _locationService.getCurrentLocation();
+      print('[DEBUG] Location result: $locationResult');
       
       if (!locationResult['success']) {
         _errorMessage = locationResult['message'];
         _isLoading = false;
         _userData = null;
         _namaDaerah = null;
+        print('[DEBUG] ✗ Location error: $_errorMessage');
         notifyListeners();
         return;
       }
 
       Position position = locationResult['position'];
+      print('[DEBUG] ✓ Location: ${position.latitude}, ${position.longitude}');
 
-      // 3. Dapatkan nama daerah dari lokasi
+      // 3. Dapatkan nama daerah
+      print('[DEBUG] Step 3: Getting area from coordinates');
+      
       final areaResult = await _locationService.getAreaFromCoordinates(
         latitude: position.latitude,
         longitude: position.longitude,
       );
+
+      print('[DEBUG] Area result: $areaResult');
 
       if (!areaResult['success']) {
         _errorMessage = areaResult['message'];
         _isLoading = false;
         _userData = null;
         _namaDaerah = null;
+        print('[DEBUG] ✗ Area error: $_errorMessage');
         notifyListeners();
         return;
       }
 
       String lokasiDaerah = areaResult['area_name'];
+      print('[DEBUG] ✓ Area: $lokasiDaerah');
 
-      print('[DEBUG] Lokasi daerah dari GPS: $lokasiDaerah');
-      print('[DEBUG] Daerah user dari API: $_namaDaerah');
-
-      // 4. Bandingkan lokasi dengan daerah user dari API
+      // 4. Bandingkan lokasi
+      print('[DEBUG] Step 4: Comparing location');
+      print('[DEBUG] Lokasi GPS: $lokasiDaerah vs Daerah user: $_namaDaerah');
+      
       if (_namaDaerah != null && 
           lokasiDaerah.toLowerCase() == _namaDaerah!.toLowerCase()) {
+        
+        print('[DEBUG] ✓ Lokasi sesuai!');
+        
         // SIMPAN DATA KE SHAREDPREFERENCES
+        print('[DEBUG] Step 5: Saving to SharedPreferences');
         await _saveUserData();
         
-        // Login berhasil
         _isLoading = false;
         notifyListeners();
+        print('[DEBUG] ✓✓✓ LOGIN SUKSES!');
+        print('[DEBUG] User: ${_userData?['nama']}, Daerah: $_namaDaerah');
         
-        print('[DEBUG] Login SUKSES! User: ${_userData?['nama']}, Daerah: $_namaDaerah');
+        // PENTING: Wait sebentar agar notifyListeners propagate
+        await Future.delayed(const Duration(milliseconds: 100));
         
-        // Navigasi SETELAH notifyListeners
+        // NAVIGASI dengan GoRouter.of() yang benar
         if (context.mounted) {
+          print('[DEBUG] Calling context.go(/beranda_pic)');
           context.go('/beranda_pic');
+        } else {
+          print('[DEBUG] ✗ Context not mounted!');
         }
       } else {
-        // Lokasi tidak sesuai
+        print('[DEBUG] ✗ Lokasi tidak sesuai!');
         _errorMessage = 
             'Akses ditolak! Lokasi Anda di $lokasiDaerah tidak sesuai dengan daerah kerja $_namaDaerah.';
         _isLoading = false;
@@ -188,7 +213,7 @@ class LoginController extends ChangeNotifier {
       _userData = null;
       _namaDaerah = null;
       notifyListeners();
-      print('[DEBUG] ERROR Login: $e');
+      print('[DEBUG] ✗✗✗ ERROR Login: $e');
     }
   }
 

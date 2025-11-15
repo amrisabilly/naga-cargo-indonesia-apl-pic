@@ -10,13 +10,11 @@ void main() async {
   
   print('[DEBUG] === APP STARTUP ===');
   
-  // Load saved user data dari SharedPreferences
   final loginController = LoginController();
   print('[DEBUG] LoginController created: ${loginController.hashCode}');
   
   await loginController.loadSavedUserData();
-  
-  print('[DEBUG] App started. User data loaded: ${loginController.userData != null}');
+  print('[DEBUG] App started. User loaded: ${loginController.userData != null}');
   
   runApp(MainApp(loginController: loginController));
 }
@@ -32,7 +30,6 @@ class MainApp extends StatelessWidget {
     
     return MultiProvider(
       providers: [
-        // PENTING: Gunakan .value untuk instance yang sudah ada
         ChangeNotifierProvider<LoginController>.value(
           value: loginController,
         ),
@@ -41,7 +38,6 @@ class MainApp extends StatelessWidget {
           lazy: false,
         ),
       ],
-      // PENTING: Gunakan child, bukan builder
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         routerDelegate: router.routerDelegate,
