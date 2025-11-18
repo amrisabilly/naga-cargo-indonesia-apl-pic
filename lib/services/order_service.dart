@@ -4,16 +4,18 @@ import 'package:http/http.dart' as http;
 class OrderService {
   static const String baseUrl = 'https://monitoringweb.decoratics.id/api';
 
-  /// Simpan order baru dari PIC
+  /// Simpan order baru dari PIC dengan data lengkap
   Future<Map<String, dynamic>> storeOrder({
     required String awb,
     required int idPic,
     required String tujuan,
+    required String penerima,
+    required String noHp,
   }) async {
     try {
-      print('[DEBUG] === STORE ORDER ===');
+      print('[DEBUG] === STORE ORDER SERVICE ===');
       print('[DEBUG] URL: $baseUrl/PIC/order');
-      print('[DEBUG] Data: AWB=$awb, id_pic=$idPic, tujuan=$tujuan');
+      print('[DEBUG] Data: AWB=$awb, id_pic=$idPic, tujuan=$tujuan, penerima=$penerima, no_hp=$noHp');
       
       final url = '$baseUrl/PIC/order';
       
@@ -27,6 +29,8 @@ class OrderService {
           'AWB': awb,
           'id_pic': idPic,
           'tujuan': tujuan,
+          'Penerima': penerima,
+          'no_hp': noHp,
         }),
       );
 
@@ -67,19 +71,16 @@ class OrderService {
   }
 
   /// Mendapatkan riwayat order berdasarkan ID PIC
-  /// Menggunakan GET dengan query parameter
   Future<Map<String, dynamic>> getRiwayatOrder({
     required int idPic,
   }) async {
     try {
       print('[DEBUG] === GET RIWAYAT ORDER ===');
       
-      // Gunakan GET dengan query parameter
       final url = Uri.parse('$baseUrl/PIC/riwayat-order')
           .replace(queryParameters: {'id_pic': idPic.toString()});
       
       print('[DEBUG] URL: $url');
-      print('[DEBUG] ID PIC: $idPic');
 
       final response = await http.get(
         url,
@@ -98,12 +99,6 @@ class OrderService {
         final orders = responseData['orders'] ?? responseData['data'] ?? [];
         
         print('[DEBUG] ✓ Riwayat order berhasil dimuat: ${orders.length} item');
-        
-        if (orders is List) {
-          for (var i = 0; i < orders.length; i++) {
-            print('[DEBUG] Order $i: ${orders[i]}');
-          }
-        }
 
         return {
           'success': true,
@@ -120,7 +115,6 @@ class OrderService {
       }
     } catch (e) {
       print('[DEBUG] ✗ Exception: $e');
-      print('[DEBUG] Stack trace: ${StackTrace.current}');
       return {
         'success': false,
         'message': 'Error koneksi ke server: $e',

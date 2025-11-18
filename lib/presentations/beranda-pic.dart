@@ -13,8 +13,10 @@ class BerandaPicScreen extends StatefulWidget {
 }
 
 class _BerandaPicScreenState extends State<BerandaPicScreen> {
-  final TextEditingController _alamatController = TextEditingController();
   final TextEditingController _awbController = TextEditingController();
+  final TextEditingController _tujuanController = TextEditingController();
+  final TextEditingController _penerimaController = TextEditingController();
+  final TextEditingController _noHpController = TextEditingController();
   bool _hasScanResult = false;
   String _scannedCode = '';
 
@@ -22,6 +24,18 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
   void initState() {
     super.initState();
     print('[DEBUG] BerandaPicScreen initState dipanggil');
+    
+    // Listen ke perubahan AWB controller
+    _awbController.addListener(_onAwbChanged);
+  }
+
+  /// Handle perubahan AWB (baik dari scan maupun manual input)
+  void _onAwbChanged() {
+    print('[DEBUG] AWB changed: ${_awbController.text}');
+    setState(() {
+      _scannedCode = _awbController.text.trim();
+      _hasScanResult = _scannedCode.isNotEmpty;
+    });
   }
 
   Future<void> _scanBast() async {
@@ -32,34 +46,42 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
 
     if (result != null && result is String) {
       print('[DEBUG] Scan result: $result');
-      setState(() {
-        _hasScanResult = true;
-        _scannedCode = result;
-        _awbController.text = result;
-      });
+      _awbController.text = result;
+      // _onAwbChanged akan dipanggil otomatis dari listener
     }
   }
 
   void _retakeBast() {
-    print('[DEBUG] Retake BAST');
-    setState(() {
-      _hasScanResult = false;
-      _scannedCode = '';
-      _awbController.clear();
-    });
+    print('[DEBUG] Retake/Clear BAST');
+    _awbController.clear();
+    // _onAwbChanged akan dipanggil otomatis dari listener
   }
 
   Future<void> _submitData() async {
     print('[DEBUG] === SUBMIT DATA DIMULAI ===');
     print('[DEBUG] AWB: $_scannedCode');
-    print('[DEBUG] Tujuan: ${_alamatController.text.trim()}');
+    print('[DEBUG] Tujuan: ${_tujuanController.text.trim()}');
+    print('[DEBUG] Penerima: ${_penerimaController.text.trim()}');
+    print('[DEBUG] No HP: ${_noHpController.text.trim()}');
     print('[DEBUG] ID PIC: ${Provider.of<LoginController>(context, listen: false).userData?['id_user']}');
     print('[DEBUG] isLoading: ${Provider.of<OrderController>(context, listen: false).isLoading}');
 
     // Validasi input
-    if (_alamatController.text.trim().isEmpty) {
+    if (_tujuanController.text.trim().isEmpty) {
       print('[DEBUG] ERROR: Tujuan kosong');
       _showErrorDialog('Nama tujuan tidak boleh kosong');
+      return;
+    }
+
+    if (_penerimaController.text.trim().isEmpty) {
+      print('[DEBUG] ERROR: Penerima kosong');
+      _showErrorDialog('Nama penerima tidak boleh kosong');
+      return;
+    }
+
+    if (_noHpController.text.trim().isEmpty) {
+      print('[DEBUG] ERROR: No HP kosong');
+      _showErrorDialog('Nomor HP tidak boleh kosong');
       return;
     }
 
@@ -113,12 +135,13 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
 
     // Submit order ke API
     print('[DEBUG] Memanggil orderController.submitOrder...');
-    print('[DEBUG] Data: AWB=$_scannedCode, ID=$idPic, Tujuan=${_alamatController.text.trim()}');
     
     final success = await orderController.submitOrder(
       awb: _scannedCode,
       idPic: idPic,
-      tujuan: _alamatController.text.trim(),
+      tujuan: _tujuanController.text.trim(),
+      penerima: _penerimaController.text.trim(),
+      noHp: _noHpController.text.trim(),
     );
 
     print('[DEBUG] Submit result: $success');
@@ -137,7 +160,9 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
             _hasScanResult = false;
             _scannedCode = '';
             _awbController.clear();
-            _alamatController.clear();
+            _tujuanController.clear();
+            _penerimaController.clear();
+            _noHpController.clear();
           });
           print('[DEBUG] Form direset');
         }
@@ -198,6 +223,66 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
     );
   }
 
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hintText,
+    required IconData icon,
+    int maxLines = 1,
+    int? maxLength,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          maxLength: maxLength,
+          keyboardType: keyboardType,
+          onChanged: (value) {
+            setState(() {});
+          },
+          decoration: InputDecoration(
+            hintText: hintText,
+            prefixIcon: Icon(icon, color: const Color(0xFF4A90E2)),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF4A90E2),
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -208,7 +293,6 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
 
         final userData = loginController.userData;
 
-        // Jika userData belum tersedia
         if (userData == null) {
           print('[DEBUG] userData NULL - redirect ke login');
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -385,34 +469,47 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 6),
+                                    // UBAH: TextField sekarang bisa di-edit
                                     TextField(
                                       controller: _awbController,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _scannedCode = value;
-                                          _hasScanResult =
-                                              value.trim().isNotEmpty;
-                                        });
-                                      },
-                                      decoration: const InputDecoration(
-                                        hintText: 'Masukkan kode BAST...',
+                                      readOnly: false,
+                                      decoration: InputDecoration(
+                                        hintText: 'Scan atau ketik kode BAST di sini',
+                                        prefixIcon: const Icon(
+                                          Icons.qr_code,
+                                          color: Color(0xFF4A90E2),
+                                        ),
+                                        suffixIcon: _hasScanResult
+                                            ? IconButton(
+                                                icon: const Icon(
+                                                  Icons.clear,
+                                                  color: Colors.red,
+                                                ),
+                                                onPressed: _retakeBast,
+                                              )
+                                            : null,
+                                        filled: true,
+                                        fillColor: Colors.white,
                                         border: OutlineInputBorder(
-                                          borderSide: BorderSide(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
                                             color: Color(0xFF4A90E2),
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
                                           borderSide: BorderSide(
-                                            color: Color(0xFF4A90E2),
+                                            color: Colors.grey[300]!,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Color(0xFF357ABD),
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFF4A90E2),
                                             width: 2,
                                           ),
                                         ),
-                                        contentPadding: EdgeInsets.symmetric(
+                                        contentPadding: const EdgeInsets.symmetric(
                                           horizontal: 12,
                                           vertical: 10,
                                         ),
@@ -421,102 +518,61 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                                     if (_hasScanResult) ...[
                                       const SizedBox(height: 12),
                                       Row(
-                                        children: const [
-                                          Icon(
+                                        children: [
+                                          const Icon(
                                             Icons.check_circle,
                                             color: Color(0xFF357ABD),
                                             size: 18,
                                           ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Kode BAST terisi',
-                                            style: TextStyle(
-                                              color: Color(0xFF357ABD),
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13,
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Kode BAST terisi: $_scannedCode',
+                                              style: const TextStyle(
+                                                color: Color(0xFF357ABD),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color: Colors.blue[200]!,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              'Kode BAST:',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.black54,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Text(
-                                              _scannedCode,
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
                                       ),
                                     ],
                                   ],
                                 ),
                               ),
 
-                              const SizedBox(height: 15),
+                              const SizedBox(height: 20),
 
-                              // Nama Tujuan Input
-                              const Text(
-                                'Nama Tujuan',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                              // Tujuan Input
+                              _buildInputField(
+                                controller: _tujuanController,
+                                label: 'Nama Tujuan',
+                                hintText: 'Masukkan nama tujuan lengkap...',
+                                icon: Icons.location_on,
+                                maxLines: 2,
+                                maxLength: 70,
                               ),
-                              const SizedBox(height: 8),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey[200]!),
-                                ),
-                                child: TextField(
-                                  controller: _alamatController,
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                  maxLines: 3,
-                                  maxLength: 70,
-                                  decoration: const InputDecoration(
-                                    hintText:
-                                        'Masukkan nama tujuan lengkap...',
-                                    hintStyle: TextStyle(fontSize: 14),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(12),
-                                      ),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    contentPadding: EdgeInsets.all(14),
-                                  ),
-                                ),
+
+                              // Penerima Input
+                              _buildInputField(
+                                controller: _penerimaController,
+                                label: 'Nama Penerima',
+                                hintText: 'Masukkan nama penerima lengkap...',
+                                icon: Icons.person_outline,
+                                maxLength: 100,
+                              ),
+
+                              // No HP Input
+                              _buildInputField(
+                                controller: _noHpController,
+                                label: 'Nomor HP',
+                                hintText: 'Masukkan nomor HP penerima...',
+                                icon: Icons.phone,
+                                keyboardType: TextInputType.phone,
+                                maxLength: 13,
                               ),
 
                               const SizedBox(height: 20),
@@ -550,17 +606,25 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Scan/Retake Button
+                      // Scan Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: orderController.isLoading
-                              ? null
-                              : (_hasScanResult ? _retakeBast : _scanBast),
+                        child: ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.qr_code_scanner,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Scan BAST',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _hasScanResult
-                                ? Colors.orange
-                                : const Color(0xFF4A90E2),
+                            backgroundColor: const Color(0xFF4A90E2),
                             disabledBackgroundColor: Colors.grey[300],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -568,27 +632,7 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             elevation: 2,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _hasScanResult
-                                    ? Icons.refresh
-                                    : Icons.qr_code_scanner,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _hasScanResult ? 'Scan Ulang BAST' : 'Scan BAST',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                          onPressed: orderController.isLoading ? null : _scanBast,
                         ),
                       ),
 
@@ -599,7 +643,9 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: (_hasScanResult &&
-                                  _alamatController.text.trim().isNotEmpty &&
+                                  _tujuanController.text.trim().isNotEmpty &&
+                                  _penerimaController.text.trim().isNotEmpty &&
+                                  _noHpController.text.trim().isNotEmpty &&
                                   !orderController.isLoading)
                               ? _submitData
                               : null,
@@ -618,7 +664,13 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                               Icon(
                                 Icons.send,
                                 color: (_hasScanResult &&
-                                        _alamatController.text
+                                        _tujuanController.text
+                                            .trim()
+                                            .isNotEmpty &&
+                                        _penerimaController.text
+                                            .trim()
+                                            .isNotEmpty &&
+                                        _noHpController.text
                                             .trim()
                                             .isNotEmpty &&
                                         !orderController.isLoading)
@@ -631,7 +683,13 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
                                 'Kirim Data',
                                 style: TextStyle(
                                   color: (_hasScanResult &&
-                                          _alamatController.text
+                                          _tujuanController.text
+                                              .trim()
+                                              .isNotEmpty &&
+                                          _penerimaController.text
+                                              .trim()
+                                              .isNotEmpty &&
+                                          _noHpController.text
                                               .trim()
                                               .isNotEmpty &&
                                           !orderController.isLoading)
@@ -658,8 +716,11 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
 
   @override
   void dispose() {
-    _alamatController.dispose();
+    _awbController.removeListener(_onAwbChanged);
     _awbController.dispose();
+    _tujuanController.dispose();
+    _penerimaController.dispose();
+    _noHpController.dispose();
     super.dispose();
   }
 }
