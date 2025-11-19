@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../controller/loginController.dart';
 import '../auth/login.dart';
-import '../presentations/beranda-pic.dart';
-import '../presentations/profile-pic.dart';
+import '../landing/beranda/berandaScreen.dart';
+import '../landing/profile/profileScreen.dart';
+import '../splash/splashScreen.dart';
 
 // Create a key untuk GoRouter agar bisa di-refresh
-final GlobalKey<NavigatorState> _rootNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -34,7 +36,9 @@ final router = GoRouter(
       }
 
       // Jika user belum login dan mencoba ke halaman yang butuh login
-      if (!isLoggedIn && state.matchedLocation != '/login') {
+      if (!isLoggedIn &&
+          state.matchedLocation != '/login' &&
+          state.matchedLocation != '/') {
         print('[DEBUG] ✓ User belum login, redirect ke /login');
         return '/login';
       }
@@ -71,6 +75,11 @@ final router = GoRouter(
         return const ProfilePicScreen();
       },
     ),
+    GoRoute(
+      path: '/',
+      name: 'splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
   ],
-  initialLocation: '/login',
+  initialLocation: '/',
 );
