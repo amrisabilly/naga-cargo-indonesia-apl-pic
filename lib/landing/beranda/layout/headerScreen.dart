@@ -11,6 +11,19 @@ class HeaderProfile extends StatelessWidget {
     required this.screenHeight,
   });
 
+  // Helper function untuk title case
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -58,11 +71,11 @@ class HeaderProfile extends StatelessWidget {
                             'Selamat Datang',
                             style: TextStyle(
                               color: Colors.white70,
-                              fontSize: isSmallScreen ? 13 : 13,
+                              fontSize: isSmallScreen ? 11 : 15,
                             ),
                           ),
                           Text(
-                            namaPic,
+                            _toTitleCase(namaPic), // Gunakan title case
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: isSmallScreen ? 13 : 15,

@@ -74,7 +74,7 @@ class OrderController extends ChangeNotifier {
 
     // Validasi nomor HP (hanya angka, 10-13 digit)
     if (!RegExp(r'^[0-9]{10,13}$').hasMatch(noHp.trim())) {
-      _errorMessage = 'Nomor HP harus angka 10-13 digit';
+      _errorMessage = 'Nomor HP harus 10-13 digit';
       notifyListeners();
       return false;
     }
@@ -128,7 +128,7 @@ class OrderController extends ChangeNotifier {
 
       if (result['success']) {
         _orders = result['orders'] ?? [];
-        
+
         // SORT data berdasarkan created_at (terbaru duluan)
         _orders.sort((a, b) {
           try {

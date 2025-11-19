@@ -76,7 +76,6 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
     if (userData == null) return;
 
     try {
-      // GANTI createOrder menjadi submitOrder sesuai yang ada di OrderController
       final result = await orderController.submitOrder(
         awb: _awbController.text.trim(),
         tujuan: _tujuanController.text.trim(),
@@ -93,11 +92,100 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
         _penerimaController.clear();
         _noHpController.clear();
       } else {
-        _showErrorDialog('Gagal mengirim data. Silakan coba lagi.');
+        // Cek apakah error karena AWB duplicate
+        String errorMessage = orderController.errorMessage;
+        if (errorMessage.contains('already been taken') ||
+            errorMessage.contains('sudah pernah digunakan') ||
+            errorMessage.contains('duplicate')) {
+          _showAwbDuplicateDialog();
+        } else {
+          _showErrorDialog(
+            errorMessage.isNotEmpty
+                ? errorMessage
+                : 'Gagal mengirim data. Silakan coba lagi.',
+          );
+        }
       }
     } catch (e) {
-      _showErrorDialog('Error: ${e.toString()}');
+      String errorMsg = e.toString();
+      if (errorMsg.contains('already been taken') ||
+          errorMsg.contains('sudah pernah digunakan')) {
+        _showAwbDuplicateDialog();
+      } else {
+        _showErrorDialog('Error: $errorMsg');
+      }
     }
+  }
+
+  void _showAwbDuplicateDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange[600],
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'AWB Sudah Terdaftar',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Batal',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Clear AWB untuk scan ulang
+                        _awbController.clear();
+                        setState(() {
+                          _hasScanResult = false;
+                          _scannedCode = '';
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4A90E2),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Scan',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
   }
 
   void _showSuccessDialog(String message) {
@@ -105,12 +193,24 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Berhasil'),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green[600], size: 24),
+                const SizedBox(width: 8),
+                const Text('Berhasil'),
+              ],
+            ),
             content: Text(message),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    color: const Color(0xFF4A90E2),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -122,7 +222,13 @@ class _BerandaPicScreenState extends State<BerandaPicScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Error'),
+            title: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red[600], size: 24),
+                const SizedBox(width: 8),
+                const Text('Error'),
+              ],
+            ),
             content: Text(message),
             actions: [
               TextButton(

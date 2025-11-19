@@ -12,6 +12,19 @@ class UserDetailsCard extends StatelessWidget {
     required this.daerah,
   });
 
+  // Helper function untuk title case
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   Widget _buildDetailRow({
     required BuildContext context,
     required IconData icon,
@@ -107,7 +120,9 @@ class UserDetailsCard extends StatelessWidget {
               context: context,
               icon: Icons.person,
               label: 'Username',
-              value: username,
+              value: _toTitleCase(
+                username,
+              ), // Gunakan title case untuk username
             ),
             Divider(height: isSmallScreen ? 20 : 24),
             _buildDetailRow(

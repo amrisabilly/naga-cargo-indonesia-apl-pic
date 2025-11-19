@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'assets/images/naga_cargo.png',
+                      'assets/images/logo.png',
                       width: 120,
                       height: 120,
                     ),

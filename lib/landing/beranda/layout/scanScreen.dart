@@ -63,7 +63,7 @@ class ScanBastSection extends StatelessWidget {
           Text(
             'Atau masukkan kode BAST secara manual:',
             style: TextStyle(
-              fontSize: isSmallScreen ? 11 : 12,
+              fontSize: isSmallScreen ? 11 : 13,
               color: Colors.black87,
               fontWeight: FontWeight.w500,
             ),
@@ -75,7 +75,7 @@ class ScanBastSection extends StatelessWidget {
             style: TextStyle(fontSize: isSmallScreen ? 12 : 13),
             decoration: InputDecoration(
               hintText: 'Masukkan kode',
-              hintStyle: TextStyle(fontSize: isSmallScreen ? 11 : 12),
+              hintStyle: TextStyle(fontSize: isSmallScreen ? 11 : 13),
               prefixIcon: Icon(
                 Icons.qr_code,
                 color: const Color(0xFF4A90E2),

@@ -6,6 +6,19 @@ class ProfileHeader extends StatelessWidget {
 
   const ProfileHeader({super.key, required this.namaPic, required this.idPic});
 
+  // Helper function untuk title case
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -28,7 +41,7 @@ class ProfileHeader extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            namaPic,
+            _toTitleCase(namaPic), // Gunakan title case
             style: TextStyle(
               color: Colors.white,
               fontSize: isSmallScreen ? 18 : 24,

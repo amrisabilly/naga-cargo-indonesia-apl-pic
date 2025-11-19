@@ -34,7 +34,7 @@ class InputFormSection extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: isSmallScreen ? 12 : 13,
+            fontSize: isSmallScreen ? 12 : 15,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
@@ -51,7 +51,7 @@ class InputFormSection extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(
-              fontSize: isSmallScreen ? 11 : 12,
+              fontSize: isSmallScreen ? 11 : 15,
               color: Colors.grey[500],
             ),
             prefixIcon: Icon(
@@ -78,7 +78,7 @@ class InputFormSection extends StatelessWidget {
               vertical: isSmallScreen ? 12 : 14,
             ),
             counterStyle: TextStyle(
-              fontSize: isSmallScreen ? 10 : 11,
+              fontSize: isSmallScreen ? 10 : 12,
               color: Colors.grey[600],
             ),
           ),
@@ -96,10 +96,10 @@ class InputFormSection extends StatelessWidget {
           context: context,
           controller: tujuanController,
           label: 'Nama Tujuan',
-          hintText: 'Contoh: Toko Sinar Mas, Jl. Sudirman No. 15',
+          hintText: 'Toko Sinar Mas, Jl. Sudirman No. 1',
           icon: Icons.location_on,
-          maxLines: 2, // Diperbesar untuk alamat yang panjang
-          maxLength: 100, // Diperbesar untuk alamat lengkap
+          maxLines: 1, // Ubah dari 2 ke 1 agar sama tinggi
+          maxLength: 100,
           keyboardType: TextInputType.streetAddress,
           textCapitalization: TextCapitalization.words,
         ),
@@ -116,10 +116,10 @@ class InputFormSection extends StatelessWidget {
           context: context,
           controller: noHpController,
           label: 'Nomor HP',
-          hintText: 'Contoh: 08123456789',
+          hintText: '08123456789',
           icon: Icons.phone,
           keyboardType: TextInputType.phone,
-          maxLength: 15, // Diperbesar untuk nomor HP yang panjang
+          maxLength: 15,
         ),
       ],
     );
